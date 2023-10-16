@@ -3,6 +3,7 @@ package DAO;
 import Model.KhoSach;
 import Model.Sach;
 
+import java.awt.image.Kernel;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,21 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KhoSach_DAO implements DAO_Interface <KhoSach> {
-    //Cap nhat (cộng) tổng so luong dua tren Id co san;
-    //Cap nhat tổng so luong dua tren id mới --> so luong con = tong so luong;
-    //Tru so luong con ( 2 hàm: - hàm 1: trừ 1 sách dựa trên id, -hàm 2: trừ n sách dựa trên id);
-    //Cập nhật số lượng bị hỏng (cần nhập n số lượng)
 
-
-    //xuất:
-    // Xuất tất cả, chọn theo id, chọn theo điều kiện;
-    //
     public static KhoSach_DAO getInstance(){
         return new KhoSach_DAO();
     }
 
     @Override
     public int add(KhoSach khoSach) {
+        if (!kiemTra(khoSach.getTongSoLuong(), khoSach.getSoLuongCon(), khoSach.getSoLuongSachHong())){
+            return -1;
+        }
         int rowsAffected = 0;
         String sql = "INSERT INTO dbo.[KhoSach] VALUES (?,?,?,?)";
         try (Connection conn = KetNoiSQL.getConnection();
@@ -43,6 +39,9 @@ public class KhoSach_DAO implements DAO_Interface <KhoSach> {
 
     @Override
     public int update(KhoSach khoSach) {
+        if (!kiemTra(khoSach.getTongSoLuong(), khoSach.getSoLuongCon(), khoSach.getSoLuongSachHong())){
+            return -1;
+        }
         int rowsAffected = 0;
         String sql = "UPDATE dbo.[KhoSach] SET tongSoLuong = ?, soLuongCon = ?, soLuongSachHong = ? WHERE maSach = ?";
         try (Connection conn = KetNoiSQL.getConnection();
@@ -57,7 +56,11 @@ public class KhoSach_DAO implements DAO_Interface <KhoSach> {
         }
         return rowsAffected;
     }
-
+    boolean kiemTra(int tong, int con, int hong){
+        if (tong<con+hong) return false;
+        if (con>tong || hong>tong) return false;
+        return true;
+    }
     @Override
     public int delete(String maSach) {
         int rowsAffected = 0;
@@ -113,6 +116,59 @@ public class KhoSach_DAO implements DAO_Interface <KhoSach> {
             e.printStackTrace();
         }
         return result;
+    }
+
+    // Trừ 1 cuốn sách trong số lượng còn (hỗ trợ cho phiếu mượn)
+    public int minusOneRemainingBooks (String maSach){
+        int rowAffected = 0;
+        String sql = "UPDATE dbo.[KhoSach] SET soLuongCon = soLuongCon-1 WHERE soLuongCon>0 AND maSach = '"+maSach+"' ";
+        try (Connection conn = KetNoiSQL.getConnection();
+            PreparedStatement pst = conn.prepareStatement(sql)){
+            rowAffected = pst.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return rowAffected;
+    }
+
+    // Trừ n cuốn sách (hỗ trợ phiếu xuất (phiếu thanh lý))
+    public int minusBooks(String maSach, int n){
+        KhoSach khoSach1 = KhoSach_DAO.getInstance().selectById(maSach);
+        int tongSach = khoSach1.getTongSoLuong();
+        int sachCon = khoSach1.getSoLuongCon();
+        int sachHong = khoSach1.getSoLuongSachHong();
+        if (tongSach>=n){
+            tongSach -=n;
+            if (sachHong>=n){
+                sachHong-=n;
+            }else {
+                sachCon = sachCon - (n-sachHong);
+                sachHong = 0;
+            }
+        }else {
+            return -1;
+        }
+        khoSach1.setTongSoLuong(tongSach);
+        khoSach1.setSoLuongCon(sachCon);
+        khoSach1.setSoLuongSachHong(sachHong);
+        return KhoSach_DAO.getInstance().update(khoSach1);
+    }
+
+    public int updateDamagedBooks(String maSach, int soLuongHong){
+        int rowAffected =0;
+        String sql = "UPDATE dbo.[KhoSach] SET soLuongSachHong = ? WHERE maSach = '"+maSach+"' ";
+        try (Connection conn = KetNoiSQL.getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql);
+             ResultSet rs = pst.executeQuery()){
+            int soLuongHongHienTai = rs.getInt("soLuongSachHong");
+            pst.setInt(1, soLuongHongHienTai+soLuongHong);
+            rowAffected = pst.executeUpdate();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return rowAffected;
     }
 
 }
