@@ -82,7 +82,7 @@ public class Sach_DAO implements DAO_Interface <Sach>{
 
 
     @Override
-    public List selectAll() {
+    public List<Sach> selectAll() {
         List<Sach> rowSelected = new ArrayList<Sach>();
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement("SELECT * FROM dbo.[ThongTinSach]");
@@ -141,7 +141,7 @@ public class Sach_DAO implements DAO_Interface <Sach>{
     //Lọc theo danh mục
     public List<Sach> selectByCategory(String maDMSach) {
         List<Sach> rowSelected = new ArrayList<Sach>();
-        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE maSach ='"+maDMSach+"'";
+        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE maDMSach ='"+maDMSach+"'";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql);
              ResultSet rs = pst.executeQuery()) {
@@ -170,7 +170,7 @@ public class Sach_DAO implements DAO_Interface <Sach>{
     //Lọc theo thể loại
     public List<Sach> selectByGenre(String maTheLoai) {
         List<Sach> rowSelected = new ArrayList<Sach>();
-        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE maSach ='"+maTheLoai+"'";
+        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE maTheLoai ='"+maTheLoai+"'";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql);
              ResultSet rs = pst.executeQuery()) {
@@ -227,7 +227,7 @@ public class Sach_DAO implements DAO_Interface <Sach>{
     //Lọc theo tên (gần giống nhất)
     public List<Sach> selectByMostSimilarName (String tenSach) {
         List<Sach> rowSelected = new ArrayList<Sach>();
-        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE TenCot LIKE '% '"+tenSach+"' %' ";
+        String sql = "SELECT * FROM dbo.[ThongTinSach] WHERE tenSach LIKE '% '"+tenSach+"' %' ";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql);
              ResultSet rs = pst.executeQuery()) {
@@ -251,5 +251,85 @@ public class Sach_DAO implements DAO_Interface <Sach>{
             e.printStackTrace();
         }
         return rowSelected;
+    }
+    public List<Sach> getAllSachByOne(String searching, String type) {
+        Connection con = KetNoiSQL.getConnection();
+        List<Sach> s = new ArrayList<Sach>();
+        String sql = "select * from dbo.[ThongTinSach], DanhMucSach where tenDMSach = ? and Sach.maDMSach = DanhMucSach.maDMSach";
+        if(type.equalsIgnoreCase("theloai"))
+            sql = "select * from Sach, TheLoai where tenTheLoai = ?"
+                    + " and Sach.maTheLoai = TheLoai.maTheLoai";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, searching);
+            ResultSet rs = ps.executeQuery();
+            s = setListSach(rs);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return s;
+    }
+
+    public List<Sach> getAllSachByBoth(String danhmuc, String theloai) {
+        Connection con = KetNoiSQL.getConnection();
+        String sql = "select * from dbo.[ThongTinSach], DanhMucSach, TheLoai where tenDMSach = ? and tenTheLoai = ?"
+                + "and Sach.maDMSach = DanhMucSach.maDMSach and Sach.maTheLoai = TheLoai.maTheLoai";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, danhmuc);
+            ps.setString(2, theloai);
+            ResultSet rs = ps.executeQuery();
+            return setListSach(rs);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<Sach> setListSach(ResultSet rs) throws SQLException {
+        List<Sach> s = new ArrayList<Sach>();
+        while(rs.next()){
+            Sach sach = new Sach();
+            sach.setMaSach(rs.getString("maSach"));
+            sach.setTenSach(rs.getString("tenSach"));
+            sach.setMaDMSach(rs.getString("maDMSach"));
+            sach.setMaTheLoai(rs.getString("maTheLoai"));
+            sach.setTacGia(rs.getString("tacGia"));
+            sach.setNXB(rs.getString("NXB"));
+            sach.setNamXuatBan(rs.getInt("namXuatBan"));
+           // sach.setSoLuongCon(rs.getInt("soLuongCon"));
+            sach.setTomTatND(rs.getString("tomTatND"));
+            s.add(sach);
+        }
+        return s;
+    }
+    public String getDMSach(String maDM) {
+        Connection con = KetNoiSQL.getConnection();
+        String sql = "select tenDMSach from DanhMucSach where maDMSach = ?";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, maDM);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getString("tenDMSach");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return "";
+    }
+
+    public String getDMTheLoai(String maTheLoai) {
+        Connection con = KetNoiSQL.getConnection();
+        String sql = "select tenTheLoai from TheLoai where maTheLoai = ?";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, maTheLoai);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            return rs.getString("tenTheLoai");
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return "";
     }
 }

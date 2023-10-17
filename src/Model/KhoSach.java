@@ -11,7 +11,9 @@ public class KhoSach {
     public KhoSach() {
         maSach = "";
     }
-
+    public KhoSach(String maSach) {
+        this.maSach = maSach;
+    }
     public KhoSach(String maSach, int tongSoLuong, int soLuongCon, int soLuongSachHong) {
         this.maSach = maSach;
         this.tongSoLuong = tongSoLuong;

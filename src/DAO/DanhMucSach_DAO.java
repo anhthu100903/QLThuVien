@@ -1,9 +1,6 @@
 package DAO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import Model.DanhMucSach;
@@ -16,7 +13,7 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
     @Override
     public int add(DanhMucSach danhMucSach) {
         int rowsAffected = 0;
-        String sql = "INSERT INTO dbo.[DanhMucSach] (maDM, tenDM) VALUES (?, ?)";
+        String sql = "INSERT INTO dbo.[DanhMucSach] (maDMSach, tenDMSach) VALUES (?, ?)";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, danhMucSach.getMaDM());
@@ -31,7 +28,7 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
     @Override
     public int update(DanhMucSach danhMucSach) {
         int rowsAffected = 0;
-        String sql = "UPDATE dbo.[DanhMucSach] SET tenDM = ? WHERE maDM = ?";
+        String sql = "UPDATE dbo.[DanhMucSach] SET tenDMSach = ? WHERE maDMSach = ?";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, danhMucSach.getTenDM());
@@ -46,7 +43,7 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
     @Override
     public int delete(String maDM) {
         int rowsAffected = 0;
-        String sql = "DELETE FROM dbo.[DanhMucSach] WHERE maDM = ?";
+        String sql = "DELETE FROM dbo.[DanhMucSach] WHERE maDMSach = ?";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, maDM);
@@ -64,8 +61,8 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
              PreparedStatement pst = conn.prepareStatement("SELECT * FROM dbo.[DanhMucSach]");
              ResultSet rs = pst.executeQuery()) {
             while (rs.next()) {
-                String maDM = rs.getString("maDM");
-                String tenDM = rs.getString("tenDM");
+                String maDM = rs.getString("maDMSach");
+                String tenDM = rs.getString("tenDMSach");
                 DanhMucSach danhMucSach = new DanhMucSach(maDM, tenDM);
                 rowSelected.add(danhMucSach);
             }
@@ -78,7 +75,7 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
     @Override
     public DanhMucSach selectById(String maDM) {
         DanhMucSach result = new DanhMucSach();
-        String sql = "SELECT * FROM dbo.[DanhMucSach] WHERE maDM = ?";
+        String sql = "SELECT * FROM dbo.[DanhMucSach] WHERE maDMSach = ?";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
             pst.setString(1, maDM);
@@ -91,5 +88,21 @@ public class DanhMucSach_DAO implements DAO_Interface<DanhMucSach> {
             e.printStackTrace();
         }
         return result;
+    }
+    public boolean checkMaDM(String maDM) {
+        Connection connection = KetNoiSQL.getConnection();
+        String sql = "SELECT * FROM DanhMucSach WHERE maDMSach like '%" + maDM + "%'";
+        try{
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+
+            if(rs.isBeforeFirst() == false){
+                return false;
+            } else
+                return true;
+        } catch(Exception e){
+
+        }
+        return false;
     }
 }

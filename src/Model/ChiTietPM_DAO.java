@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package DAO;
+package Model;
 
+import DAO.KetNoiSQL;
 import Model.ChiTietPhieuMuon;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -21,11 +22,11 @@ import java.util.List;
 public class ChiTietPM_DAO {
     public List<ChiTietPhieuMuon> getDSCHiTietPM(String maPhieuMuon) {
         List<ChiTietPhieuMuon> ctpmList = new ArrayList<ChiTietPhieuMuon>();
-        
+
         Connection connection = KetNoiSQL.getConnection();
-        
+
         String sql = "select * from ChiTietPhieuMuon where maPhieuMuon like '%" + maPhieuMuon + "%'";
-        
+
         try {
             Statement statement = connection.createStatement();
             ResultSet rs = statement.executeQuery(sql);
@@ -37,7 +38,7 @@ public class ChiTietPM_DAO {
                 ctpm.setNgayThucTra(rs.getString("ngayThucTra"));
                 ctpm.setTinhTrangSach(rs.getString("tinhTrangSach"));
                 ctpm.setTienPhat(rs.getInt("tienPhat"));
-                
+
                 ctpmList.add(ctpm);
             }
         } catch (SQLException e) {
@@ -45,11 +46,11 @@ public class ChiTietPM_DAO {
 
         return ctpmList;
     }
-    
+
     public void insertChiTietPM(ChiTietPhieuMuon ctpm) {
         Connection connection = KetNoiSQL.getConnection();
         String sql = "INSERT INTO ChiTietPhieuMuon (maPhieuMuon, maSach) VALUES (?, ?)";
-        try {           
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, ctpm.getMaPM());
             preparedStatement.setString(2, ctpm.getMaSach());
@@ -58,11 +59,11 @@ public class ChiTietPM_DAO {
             e.printStackTrace();
         }
     }
-    
+
     public void updateChiTietPM(ChiTietPhieuMuon ctpm) {
         Connection connection = KetNoiSQL.getConnection();
         String sql = "UPDATE ChiTietPhieuMuon SET ngayThucTra = ?, tinhTrangSach = ? WHERE maPhieuMuon = ? and maSach = ?";
-        try {           
+        try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, ctpm.getNgayThucTra());
             preparedStatement.setString(2, ctpm.getTinhTrangSach());
@@ -70,10 +71,10 @@ public class ChiTietPM_DAO {
             preparedStatement.setString(4, ctpm.getMaSach());
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            
+
         }
     }
-    
+
     public void deleteChiTietPM(String idPhieuMuon, String idSach) {
         Connection connection = KetNoiSQL.getConnection();
         String sql = "DELETE ChiTietPhieuMuon WHERE maSach LIKE '%" + idSach + "%' AND maPhieuMuon LIKE '%" + idPhieuMuon + "%'";

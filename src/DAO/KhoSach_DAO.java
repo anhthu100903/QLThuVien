@@ -1,9 +1,7 @@
 package DAO;
 
 import Model.KhoSach;
-import Model.Sach;
 
-import java.awt.image.Kernel;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -100,7 +98,7 @@ public class KhoSach_DAO implements DAO_Interface <KhoSach> {
     @Override
     public KhoSach selectById(String maSach) {
         KhoSach result = new KhoSach();
-        String sql = "SELECT * FROM dbo.[KhoSach] WHERE id ='"+maSach+"'";
+        String sql = "SELECT * FROM dbo.[KhoSach] WHERE maSach ='"+maSach+"'";
         try (Connection conn = KetNoiSQL.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql);
              ResultSet rs = pst.executeQuery())  {
